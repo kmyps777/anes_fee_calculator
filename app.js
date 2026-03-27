@@ -553,12 +553,28 @@ if (auth && authLib) {
     updateAuthUI(user);
   });
 
-  // 구글 로그인
+  // 리디렉트 결과 처리 (iOS Safari 복귀 후)
+  authLib.getRedirectResult(auth).then(result => {
+    if (result?.user) showToast("✓ 로그인 완료");
+  }).catch(e => {
+    if (e.code !== "auth/popup-closed-by-user")
+      showToast("로그인 실패: " + e.message);
+  });
+
+  // 구글 로그인 — iOS Safari는 redirect, 그 외는 popup
   document.getElementById("btnLogin").addEventListener("click", async () => {
+    const provider = new authLib.GoogleAuthProvider();
+    const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent) &&
+                        /WebKit/.test(navigator.userAgent) &&
+                        !/CriOS|FxiOS/.test(navigator.userAgent);
     try {
-      const provider = new authLib.GoogleAuthProvider();
-      await authLib.signInWithPopup(auth, provider);
-      showToast("✓ 로그인 완료");
+      if (isSafariIOS) {
+        await authLib.signInWithRedirect(auth, provider);
+        // 페이지가 구글로 이동하므로 이 아래는 실행 안 됨
+      } else {
+        await authLib.signInWithPopup(auth, provider);
+        showToast("✓ 로그인 완료");
+      }
     } catch (e) {
       if (e.code !== "auth/popup-closed-by-user")
         showToast("로그인 실패: " + e.message);
