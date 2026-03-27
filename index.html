@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="마취비계산기" />
+  <meta name="theme-color" content="#0a1628" />
+  <title>마취비 계산기</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ====================================================
+       HEADER
+  ==================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo-mark">＋</div>
+      <h1 class="app-title">마취비 계산기</h1>
+      <button class="btn-icon" id="btnHistory" title="기록 보기" aria-label="기록 보기">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </button>
+      <!-- 로그인 상태 표시 -->
+      <div class="auth-area" id="authArea">
+        <button class="btn-login" id="btnLogin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          로그인
+        </button>
+        <div class="user-info hidden" id="userInfo">
+          <img class="user-avatar" id="userAvatar" src="" alt="" />
+          <button class="btn-logout" id="btnLogout">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================
+       MAIN FORM
+  ==================================================== -->
+  <main class="main-content">
+
+    <!-- Cases container -->
+    <section class="cases-section">
+      <div class="section-header">
+        <span class="section-label">수술 목록</span>
+        <div class="header-btns">
+          <button class="btn-save-draft" id="btnSaveDraft">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            임시저장
+          </button>
+          <button class="btn-reset-top" id="btnReset">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4h6v2"/>
+            </svg>
+            초기화
+          </button>
+          <button class="btn-add" id="btnAddCase">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            수술 추가
+          </button>
+        </div>
+      </div>
+
+      <div class="cases-list" id="casesList"></div>
+    </section>
+
+    <!-- Calculate button -->
+    <button class="btn-calculate" id="btnCalculate">
+      <span>계산하기</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+
+    <!-- Result panel -->
+    <section class="result-panel hidden" id="resultPanel">
+      <div class="result-header">
+        <span class="result-label">계산 결과</span>
+        <div class="result-total" id="resultTotal">0원</div>
+      </div>
+      <div class="result-timeline" id="resultTimeline"></div>
+      <div class="result-breakdown" id="resultBreakdown"></div>
+      <div class="result-actions">
+        <button class="btn-save" id="btnSave">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          기록 저장
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================
+       HISTORY DRAWER
+  ==================================================== -->
+  <div class="drawer-overlay hidden" id="drawerOverlay"></div>
+  <aside class="history-drawer hidden" id="historyDrawer">
+    <div class="drawer-header">
+      <h2>저장된 기록</h2>
+      <button class="btn-icon" id="btnCloseDrawer" aria-label="닫기">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="history-list" id="historyList">
+      <p class="empty-msg">저장된 기록이 없습니다</p>
+    </div>
+  </aside>
+
+  <!-- ====================================================
+       RESET CONFIRM MODAL
+  ==================================================== -->
+  <div class="modal-overlay hidden" id="resetModalOverlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-title">초기화할까요?</div>
+      <div class="modal-desc">입력된 수술 목록과 임시저장 데이터가 모두 삭제됩니다.</div>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" id="btnResetCancel">취소</button>
+        <button class="modal-btn-confirm" id="btnResetConfirm">초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       TOAST
+  ==================================================== -->
+  <div class="toast hidden" id="toast"></div>
+
+  <!-- ====================================================
+       FIREBASE SDK
+       TODO: 아래 firebaseConfig 값을 본인의 Firebase 프로젝트 값으로 교체하세요.
+  ==================================================== -->
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // ✏️ Firebase 콘솔 > 프로젝트 설정 > 내 앱에서 복사한 값으로 교체
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBl-bzZzj0c2L61m1-HeJEg2lredEiySw4",
+      authDomain:        "anes-fee-calculator.firebaseapp.com",
+      projectId:         "anes-fee-calculator",
+      storageBucket:     "anes-fee-calculator.firebasestorage.app",
+      messagingSenderId: "712728435095",
+      appId:             "1:712728435095:web:e1c4344add1848fa53ccd2"
+    };
+
+    let db   = null;
+    let auth = null;
+    try {
+      const app = initializeApp(firebaseConfig);
+      db   = getFirestore(app);
+      auth = getAuth(app);
+    } catch (e) {
+      console.warn("Firebase 초기화 실패 – 오프라인 모드", e);
+    }
+
+    window.__db     = db;
+    window.__auth   = auth;
+    window.__fsLib  = { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy };
+    window.__authLib = { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged };
+
+    const s = document.createElement("script");
+    s.src = "app.js";
+    document.body.appendChild(s);
+  </script>
+
+</body>
+</html>
