@@ -42,6 +42,25 @@ service cloud.firestore {
 ### 4. Google 로그인 활성화
 Firebase 콘솔 → **Authentication** → **Sign-in method** → **Google** → 사용 설정 → 저장
 
+### 5. 승인된 도메인 추가 (필수)
+Firebase 콘솔 → **Authentication** → **Settings** → **승인된 도메인** → **도메인 추가**
+
+추가할 도메인:
+```
+YOUR_USERNAME.github.io
+```
+
+> ⚠️ 이 설정을 안 하면 GitHub Pages에서 구글 로그인 팝업이 차단됩니다.
+
+### 6. API 키 도메인 제한 (권장)
+Google Cloud Console → **API 및 서비스** → **사용자 인증 정보** → Firebase 프로젝트의 **API 키** 선택 → **애플리케이션 제한사항** → **HTTP 리퍼러** 선택 후 아래 추가:
+
+```
+https://YOUR_USERNAME.github.io/*
+```
+
+> 이 설정을 하면 내 도메인에서만 API 키가 동작해 무단 사용을 막을 수 있습니다.
+
 ### 3. index.html 에 config 붙여넣기
 `index.html` 하단 스크립트 블록에서 아래 부분을 수정합니다:
 
