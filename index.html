@@ -152,6 +152,8 @@
       firebase.initializeApp(firebaseConfig);
       window.__db   = firebase.firestore();
       window.__auth = firebase.auth();
+      // iOS Safari PWA에서도 로그인 유지되도록 LOCAL persistence 명시
+      window.__auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     } catch(e) {
       console.warn("Firebase 초기화 실패:", e);
       window.__db   = null;
