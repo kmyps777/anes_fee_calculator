@@ -8,15 +8,10 @@
   <meta name="apple-mobile-web-app-title" content="마취비계산기" />
   <meta name="theme-color" content="#0a1628" />
   <title>마취비 계산기</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
 
-  <!-- ====================================================
-       HEADER
-  ==================================================== -->
   <header class="app-header">
     <div class="header-inner">
       <div class="logo-mark">＋</div>
@@ -27,7 +22,6 @@
           <polyline points="12 6 12 12 16 14"/>
         </svg>
       </button>
-      <!-- 로그인 상태 표시 -->
       <div class="auth-area" id="authArea">
         <button class="btn-login" id="btnLogin">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -44,12 +38,7 @@
     </div>
   </header>
 
-  <!-- ====================================================
-       MAIN FORM
-  ==================================================== -->
   <main class="main-content">
-
-    <!-- Cases container -->
     <section class="cases-section">
       <div class="section-header">
         <span class="section-label">수술 목록</span>
@@ -79,11 +68,9 @@
           </button>
         </div>
       </div>
-
       <div class="cases-list" id="casesList"></div>
     </section>
 
-    <!-- Calculate button -->
     <button class="btn-calculate" id="btnCalculate">
       <span>계산하기</span>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -91,7 +78,6 @@
       </svg>
     </button>
 
-    <!-- Result panel -->
     <section class="result-panel hidden" id="resultPanel">
       <div class="result-header">
         <span class="result-label">계산 결과</span>
@@ -110,12 +96,8 @@
         </button>
       </div>
     </section>
-
   </main>
 
-  <!-- ====================================================
-       HISTORY DRAWER
-  ==================================================== -->
   <div class="drawer-overlay hidden" id="drawerOverlay"></div>
   <aside class="history-drawer hidden" id="historyDrawer">
     <div class="drawer-header">
@@ -131,9 +113,6 @@
     </div>
   </aside>
 
-  <!-- ====================================================
-       RESET CONFIRM MODAL
-  ==================================================== -->
   <div class="modal-overlay hidden" id="resetModalOverlay">
     <div class="modal-box" onclick="event.stopPropagation()">
       <div class="modal-title">초기화할까요?</div>
@@ -145,24 +124,20 @@
     </div>
   </div>
 
-  <!-- ====================================================
-       TOAST
-  ==================================================== -->
   <div class="toast hidden" id="toast"></div>
 
-  <!-- ====================================================
-       FIREBASE SDK
-       TODO: 아래 firebaseConfig 값을 본인의 Firebase 프로젝트 값으로 교체하세요.
-  ==================================================== -->
-  <script type="module">
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-             getRedirectResult, signOut, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <!-- Firebase + app.js: 모두 일반 스크립트, 순서대로 로드 -->
+  <script>
+    // Firebase를 window에 붙이기 위한 글로벌 변수
+    window.__firebaseReady = false;
+  </script>
 
+  <!-- Firebase SDK (compat 버전 — 글로벌 window.firebase 제공) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <script>
     // ✏️ Firebase 콘솔 > 프로젝트 설정 > 내 앱에서 복사한 값으로 교체
     const firebaseConfig = {
       apiKey:            "YOUR_API_KEY",
@@ -173,23 +148,18 @@
       appId:             "YOUR_APP_ID"
     };
 
-    let db   = null;
-    let auth = null;
     try {
-      const app = initializeApp(firebaseConfig);
-      db   = getFirestore(app);
-      auth = getAuth(app);
-    } catch (e) {
-      console.warn("Firebase 초기화 실패 – 오프라인 모드", e);
+      firebase.initializeApp(firebaseConfig);
+      window.__db   = firebase.firestore();
+      window.__auth = firebase.auth();
+    } catch(e) {
+      console.warn("Firebase 초기화 실패:", e);
+      window.__db   = null;
+      window.__auth = null;
     }
-
-    window.__db      = db;
-    window.__auth    = auth;
-    window.__fsLib   = { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy };
-    window.__authLib = { GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-                         getRedirectResult, signOut, onAuthStateChanged };
   </script>
-  <script type="module" src="./app.js"></script>
+
+  <script src="./app.js"></script>
 
 </body>
 </html>
