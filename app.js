@@ -547,52 +547,59 @@ function updateAuthUI(user) {
   }
 }
 
+// 초기 저장 버튼 비활성
+document.getElementById("btnSave").disabled = true;
+document.getElementById("btnSave").style.opacity = "0.4";
+
+// 로그인 상태 감지
 if (auth && authLib) {
-  // 로그인 상태 감지
+  // 리디렉트 복귀 결과 처리 (iOS Safari)
+  authLib.getRedirectResult(auth)
+    .then(result => { if (result?.user) showToast("✓ 로그인 완료"); })
+    .catch(e => { console.error("redirect result error:", e); });
+
+  // 로그인 상태 실시간 감지
   authLib.onAuthStateChanged(auth, user => {
     updateAuthUI(user);
   });
-
-  // 리디렉트 결과 처리 (iOS Safari 복귀 후)
-  authLib.getRedirectResult(auth).then(result => {
-    if (result?.user) showToast("✓ 로그인 완료");
-  }).catch(e => {
-    if (e.code !== "auth/popup-closed-by-user")
-      showToast("로그인 실패: " + e.message);
-  });
-
-  // 구글 로그인 — iOS Safari는 redirect, 그 외는 popup
-  document.getElementById("btnLogin").addEventListener("click", async () => {
-    const provider = new authLib.GoogleAuthProvider();
-    const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent) &&
-                        /WebKit/.test(navigator.userAgent) &&
-                        !/CriOS|FxiOS/.test(navigator.userAgent);
-    try {
-      if (isSafariIOS) {
-        await authLib.signInWithRedirect(auth, provider);
-        // 페이지가 구글로 이동하므로 이 아래는 실행 안 됨
-      } else {
-        await authLib.signInWithPopup(auth, provider);
-        showToast("✓ 로그인 완료");
-      }
-    } catch (e) {
-      if (e.code !== "auth/popup-closed-by-user")
-        showToast("로그인 실패: " + e.message);
-    }
-  });
-
-  // 로그아웃
-  document.getElementById("btnLogout").addEventListener("click", async () => {
-    await authLib.signOut(auth);
-    showToast("로그아웃 됐습니다");
-  });
-} else {
-  // Firebase 미연결시 저장 버튼 비활성화
-  const btnSaveEl = document.getElementById("btnSave");
-  btnSaveEl.disabled = true;
-  btnSaveEl.style.opacity = "0.4";
 }
 
-// 초기 저장 버튼 상태 (로그인 전 비활성)
-document.getElementById("btnSave").disabled = true;
-document.getElementById("btnSave").style.opacity = "0.4";
+// 로그인 버튼 — auth 상태와 무관하게 항상 이벤트 등록
+document.getElementById("btnLogin").addEventListener("click", async () => {
+  if (!auth || !authLib) {
+    showToast("Firebase 설정을 확인해주세요");
+    return;
+  }
+  const provider = new authLib.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  // iOS Safari 감지 (PWA 포함)
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) &&
+                /WebKit/.test(navigator.userAgent) &&
+                !/CriOS|FxiOS/.test(navigator.userAgent);
+
+  try {
+    if (isIOS) {
+      // iOS Safari: 팝업 대신 리디렉트
+      await authLib.signInWithRedirect(auth, provider);
+    } else {
+      await authLib.signInWithPopup(auth, provider);
+      showToast("✓ 로그인 완료");
+    }
+  } catch (e) {
+    console.error("login error:", e);
+    if (e.code === "auth/popup-blocked") {
+      // 팝업 차단됐으면 리디렉트로 재시도
+      await authLib.signInWithRedirect(auth, provider);
+    } else if (e.code !== "auth/popup-closed-by-user") {
+      showToast("로그인 실패: " + e.code);
+    }
+  }
+});
+
+// 로그아웃 버튼
+document.getElementById("btnLogout").addEventListener("click", async () => {
+  if (!auth || !authLib) return;
+  await authLib.signOut(auth);
+  showToast("로그아웃 됐습니다");
+});
